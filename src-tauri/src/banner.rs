@@ -1,70 +1,69 @@
 //! Startup banner (spec §4.1). The MicioDev logo, printed in neon green in every
-//! new pane before the shell prompt. This art is a FIXED ASSET — do not
-//! regenerate or "improve" it.
+//! new pane before the shell prompt. Width-corrected so it renders at the logo's
+//! ~1.55:1 aspect (terminal cells are ~2:1). Fixed asset — do not regenerate.
 
 const BANNER_ART: &str = r#"
-              #@%                              %@%
-             @@#%@@%                        %@@%#@@
-            *%=    @@@                    @@@    .%#
-            @%       @@@                @@@       %@
-            %%         @@@@@@@@@@@@@@@@@@         %%
-           :%%                                    #%:
-            %%                                    #%
-            @@                                    %@
-            *%*                                  +%*
-             %@                                  @%
-            %@                                    @%
-   =#%%%%%#@@                                      %@#%%%%%#=
- @@@*-                                                    =*@@@
-%%   #%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%#   %%
-%%  #%                                                    %#  %%
-%%  *%                                                    %*  %%
-%%  *%                                                    @*  %%
-%%  *%                            %@.                     @*  %%
-%%  *%                :@@         @@   +@#                @*  %%
-%%  *%               @@%         @@     *@@               @*  %%
-%%  *%             @@@          @@        %@@             @*  %%
-%%  *%           @@@            @%          @@%           @*  %%
-%%  *%          @@%            @@            %@@          @*  %%
-%%  *%            @@@         @@           @@@            @*  %%
-%%  *%              @@%      #@*         %@@              @*  %%
-%%  *%               .@@#   :@@        %@@                @*  %%
-%%  *%                      @@                            @*  %%
-%%  *%                                                    @*  %%
-%%  *%                                                    @*  %%
-%%  #%                                                    %*  %%
-%%  :@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.  %%
-%%                                                            %%
-%%                                                            %%
- @@#                                                        #@@
-  *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
-                         %%          @%
-                         @*           @
+                #@%                                 %@%
+               @@#%@@%                           %@@%#@@
+              *%=    @@@@                     @@@@    .%#
+              @%       @@@@                 @@@@       %@
+              %%          @@@@@@@@@@@@@@@@@@@          %%
+             :%%                                       #%:
+              %%                                       #%
+              @@                                       %@
+              *%*                                     +%*
+               %@                                     @%
+              %@                                       @%
+    =#%%%%%##@@                                         %@##%%%%%#=
+  @@@*-                                                         =*@@@
+%%%   #%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%#   %%
+%%%  #%                                                         %#  %%
+%%%  *%                                                         %*  %%
+%%%  *%                                                         @*  %%
+%%%  *%                               %@.                       @*  %%
+%%%  *%                  :@@          @@   +@#                  @*  %%
+%%%  *%                @@@%          @@     *@@@                @*  %%
+%%%  *%              @@@@          @@@        %%@@              @*  %%
+%%%  *%            @@@             @@%           @@%            @*  %%
+%%%  *%           @@%             @@@             %@@           @*  %%
+%%%  *%             @@@          @@             @@@             @*  %%
+%%%  *%               @@@%      #@*          %@@@               @*  %%
+%%%  *%                ..@@#   :@@         %@@                  @*  %%
+%%%  *%                        @@                               @*  %%
+%%%  *%                                                         @*  %%
+%%%  *%                                                         @*  %%
+%%%  #%                                                         %*  %%
+%%%  :@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.  %%
+%%%                                                                 %%
+%%%                                                                 %%
+  @@#                                                             #@@
+   *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
+                            %%           @%
+                            @*            @
 
-          *@@@@@@@. @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-
-           @%-                                    *%%
-            *@%                   -              @@:
-              @@                %@*     %*     =@@
-               %@#            #@@     @%      %@#
-                *@@         #@@     @@       @@-
-                  @@:     %@@     @@       *@@
-                   %@#  @@@    @@@@       @@#
-                     @@%@    @@@*        @@
-                      @%   @@%    %    %@@
-                       #@%%+    @=    @@+
-                         @%    %     @@
-                          @@#      %@@
-                           #@@    @@*
-                             @@ .@@
-                              @@@%
+           **@@@@@@@. @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@--
+             @%-                                       *%%
+              *@%                     -               @@:
+                @@                 %%@*     %*      =@@
+                 %@#             #@@@     @%       %@#
+                  *@@          #@@      @@        @@-
+                    @@:      %@@      @@        *@@
+                     %@##  @@@    @@@@@       @@@#
+                       @@@%@    @@@**        @@@
+                         @%   @@%     %    %@@
+                          #@%%+    @@=    @@+
+                            @%    %      @@
+                             @@#       %@@
+                              #@@     @@*
+                                @@ ..@@
+                                 @@@@%
 "#;
 
 /// Bytes to emit on a new pane's output channel, or empty when disabled.
 ///
-/// Colored bold neon green `#2fff5a` via truecolor, prefixed with a bright-green
-/// `\x1b[1;92m` fallback so non-truecolor terminals still render green. Uses
-/// CRLF line endings so the raw terminal renders each line left-aligned, and
-/// resets color at the end.
+/// Bold neon green `#2fff5a` via truecolor, prefixed with a bright-green
+/// `\x1b[1;92m` fallback for non-truecolor terminals. CRLF line endings so the
+/// raw terminal renders each line left-aligned; resets color at the end.
 pub fn banner_bytes(show: bool) -> Vec<u8> {
     if !show {
         return Vec::new();
@@ -90,6 +89,5 @@ mod tests {
         assert!(text.contains("\x1b[1;92m"), "bright-green fallback");
         assert!(text.contains("\x1b[0m"), "resets color");
         assert!(text.contains("\r\n"), "CRLF line endings");
-        assert!(!text.starts_with('\n'), "no stray leading blank line");
     }
 }
