@@ -1,12 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { closeTab, createTabsState, cycleTab, openTab, setActiveTab } from "./tabs";
+import { closeTab, createTabsState, cycleTab, openTab, renameTab, setActiveTab } from "./tabs";
 
 const tab = (id: string) => ({ id, title: id });
 
 /** Open the given ids in order; the last one ends up active. */
 const withTabs = (...ids: string[]) =>
   ids.reduce((state, id) => openTab(state, tab(id)), createTabsState());
+
+describe("renameTab", () => {
+  it("changes only the targeted tab's title", () => {
+    const state = renameTab(withTabs("a", "b"), "a", "API server");
+    expect(state.tabs.find((t) => t.id === "a")?.title).toBe("API server");
+    expect(state.tabs.find((t) => t.id === "b")?.title).toBe("b");
+  });
+
+  it("ignores unknown ids", () => {
+    const base = withTabs("a");
+    expect(renameTab(base, "ghost", "x")).toEqual(base);
+  });
+
+  it("keeps the active tab unchanged", () => {
+    const state = renameTab(withTabs("a", "b"), "a", "renamed");
+    expect(state.activeId).toBe("b");
+  });
+});
 
 describe("openTab", () => {
   it("appends the tab and makes it active", () => {

@@ -4,6 +4,8 @@ pub mod config;
 pub mod pty;
 pub mod window;
 
+use std::sync::Mutex;
+
 use tauri::Manager;
 
 use pty::manager::SessionManager;
@@ -14,11 +16,16 @@ pub fn run() {
     .manage(SessionManager::new())
     .invoke_handler(tauri::generate_handler![
       commands::get_config,
+      commands::save_config,
+      commands::set_blur_material,
       commands::open_window,
       commands::pty_spawn,
       commands::pty_write,
       commands::pty_resize,
       commands::pty_kill,
+      commands::pty_cwd,
+      commands::save_session,
+      commands::load_session,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -36,7 +43,7 @@ pub fn run() {
         .map(|dir| config::load(&dir.join("config.toml")))
         .unwrap_or_default();
       window::apply_window_effects(app, &config);
-      app.manage(config);
+      app.manage(Mutex::new(config));
 
       Ok(())
     })

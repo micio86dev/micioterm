@@ -15,6 +15,8 @@ export interface KeyActions {
   cyclePane: (direction: 1 | -1) => void;
   /** ⌘/ : toggle the keyboard-shortcuts help overlay. */
   toggleHelp: () => void;
+  /** ⌘, : open the Preferences panel. */
+  openSettings: () => void;
   /** ⌘F or ⌘Enter: toggle native fullscreen. */
   toggleFullscreen: () => void;
   /** ⌘K: clear the active terminal. */
@@ -95,6 +97,9 @@ export function installKeybindings(actions: KeyActions): () => void {
       }
       if (event.code === "Slash") {
         return swallow(event, actions.toggleHelp);
+      }
+      if (event.code === "Comma") {
+        return swallow(event, actions.openSettings);
       }
       if (event.code === "BracketRight") {
         return swallow(event, () => actions.cyclePane(1));

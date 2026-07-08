@@ -102,6 +102,22 @@ body {
   font-size: 18px;
 }
 
+.tab-bar__settings {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  color: var(--color-secondary-dim);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 6px;
+  transition: color 0.12s ease;
+}
+
+.tab-bar__settings:hover {
+  color: var(--color-fg);
+}
+
 /* Pane host fills the rest; one grid per tab, only the active grid is shown. */
 .pane-host {
   position: relative;
@@ -161,6 +177,72 @@ body {
 .pane .xterm .xterm-viewport {
   height: 100%;
   background: transparent !important;
+}
+
+/* Pane name chip (top-right overlay). Double-click to label the pane. */
+.pane__name {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  z-index: 3;
+  max-width: 55%;
+  padding: 1px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--color-fg);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(47, 255, 90, 0.35);
+  border-radius: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+  -webkit-user-select: none;
+  user-select: none;
+  opacity: 0.7;
+  transition: opacity 0.12s ease;
+}
+
+.pane:hover .pane__name {
+  opacity: 1;
+}
+
+/* Unnamed panes: hide the "＋" affordance until the pane is hovered. */
+.pane__name--empty {
+  color: var(--color-secondary-dim);
+  border-color: rgba(255, 255, 255, 0.18);
+  opacity: 0;
+}
+
+.pane:hover .pane__name--empty {
+  opacity: 0.55;
+}
+
+.pane__name-input {
+  width: 130px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-fg);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  outline: none;
+}
+
+/* Inline tab-title editor (double-click a tab). */
+.tab__rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-secondary);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  outline: none;
 }
 
 /* Subtle transient hint (e.g. the rejected 5th split). */
@@ -258,6 +340,273 @@ body {
 
 .help-hint {
   margin-top: 18px;
+  color: var(--color-secondary-dim);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Preferences panel (⌘, or the gear button). */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.settings-overlay--hidden {
+  display: none;
+}
+
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  width: 760px;
+  max-width: 92vw;
+  height: 560px;
+  max-height: 88vh;
+  background: rgba(10, 14, 11, 0.98);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.55);
+  color: var(--color-secondary);
+  overflow: hidden;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex: 0 0 auto;
+}
+
+.settings-title {
+  color: var(--color-fg);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.settings-close {
+  background: transparent;
+  border: none;
+  color: var(--color-secondary-dim);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.12s ease;
+}
+
+.settings-close:hover {
+  color: var(--color-fg);
+}
+
+.settings-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Sidebar: profile list + actions. */
+.settings-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 190px;
+  flex: 0 0 auto;
+  padding: 14px 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 10px;
+}
+
+.settings-sidebar__title {
+  color: var(--color-secondary-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.settings-profile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.settings-profile-item {
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-secondary-dim);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 7px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.settings-profile-item:hover {
+  color: var(--color-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.settings-profile-item--active {
+  color: var(--color-fg);
+  background: rgba(47, 255, 90, 0.1);
+  border-color: rgba(47, 255, 90, 0.35);
+}
+
+.settings-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: var(--color-secondary);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 9px;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+
+.settings-btn:hover:not(:disabled) {
+  color: var(--color-fg);
+  border-color: var(--accent-border);
+}
+
+.settings-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Form: the active profile's editable fields. */
+.settings-form {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+  min-width: 0;
+}
+
+.settings-section {
+  color: var(--color-secondary-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin: 16px 0 8px;
+}
+
+.settings-section:first-child {
+  margin-top: 0;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.settings-label {
+  flex: 0 0 96px;
+  color: var(--color-secondary);
+  font-size: 13px;
+}
+
+.settings-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: var(--color-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 9px;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+}
+
+.settings-input-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-range {
+  flex: 1 1 auto;
+  accent-color: var(--color-fg);
+}
+
+.settings-readout {
+  flex: 0 0 44px;
+  text-align: right;
+  color: var(--color-fg);
+  font-size: 12px;
+}
+
+.settings-checkbox {
+  accent-color: var(--color-fg);
+  width: 16px;
+  height: 16px;
+}
+
+/* Color palette grid. */
+.settings-palette {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 12px;
+  margin-top: 4px;
+}
+
+.settings-swatch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-secondary-dim);
+  cursor: pointer;
+}
+
+.settings-swatch__input {
+  width: 26px;
+  height: 22px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.settings-swatch__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-hint {
+  flex: 0 0 auto;
+  padding: 10px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--color-secondary-dim);
   font-size: 11px;
   text-align: center;

@@ -89,6 +89,51 @@ impl SessionManager {
         let mut session = self.lock().remove(id).ok_or_else(|| not_found(id))?;
         session.kill()
     }
+
+    /// The current working directory of a session's shell, for session restore.
+    /// Best-effort: `None` if the id is unknown, the shell exited, or the cwd
+    /// can't be resolved.
+    pub fn cwd(&self, id: &str) -> Option<String> {
+        let pid = self.lock().get(id)?.process_id()?;
+        process_cwd(pid)
+    }
+}
+
+/// Resolve a process's working directory. macOS has no `/proc`, so we ask
+/// `lsof` for the single `cwd` descriptor of one pid — fast and dependency-free.
+#[cfg(target_os = "macos")]
+fn process_cwd(pid: u32) -> Option<String> {
+    use std::process::{Command, Stdio};
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    let child = Command::new("lsof")
+        .args(["-a", "-p", &pid.to_string(), "-d", "cwd", "-Fn"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .ok()?;
+
+    // Bound the wait: a hung lsof (e.g. a stalled mount) must not tie up the
+    // caller. On timeout we give up; the reader thread reaps the child later.
+    let (tx, rx) = mpsc::channel();
+    std::thread::spawn(move || {
+        let _ = tx.send(child.wait_with_output());
+    });
+    let output = match rx.recv_timeout(Duration::from_millis(1500)) {
+        Ok(Ok(output)) if output.status.success() => output,
+        _ => return None,
+    };
+
+    // `-Fn` prints field-prefixed lines; the cwd path is the `n`-prefixed one.
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .find_map(|line| line.strip_prefix('n').map(str::to_string))
+}
+
+#[cfg(not(target_os = "macos"))]
+fn process_cwd(_pid: u32) -> Option<String> {
+    None
 }
 
 #[cfg(test)]
@@ -141,6 +186,50 @@ mod tests {
             mgr.kill("ghost").unwrap_err().kind(),
             std::io::ErrorKind::NotFound
         );
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn cwd_reports_the_shell_working_directory() {
+        use std::time::{Duration, Instant};
+
+        // Canonicalize because macOS /tmp is a symlink to /private/tmp and lsof
+        // returns the real path.
+        let dir = std::fs::canonicalize(std::env::temp_dir()).unwrap();
+        let mgr = SessionManager::new();
+        mgr.spawn(
+            "pane-cwd",
+            PtyConfig {
+                shell: "/bin/sh".into(),
+                args: vec![],
+                cwd: Some(dir.to_string_lossy().into_owned()),
+                cols: 80,
+                rows: 24,
+            },
+            |_| {},
+            || {},
+        )
+        .unwrap();
+
+        // The shell needs a moment to be visible to lsof.
+        let deadline = Instant::now() + Duration::from_secs(3);
+        let mut got = None;
+        while Instant::now() < deadline {
+            if let Some(cwd) = mgr.cwd("pane-cwd") {
+                got = Some(cwd);
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+
+        mgr.kill("pane-cwd").ok();
+        assert_eq!(got.as_deref(), Some(dir.to_string_lossy().as_ref()));
+    }
+
+    #[test]
+    fn cwd_of_unknown_session_is_none() {
+        let mgr = SessionManager::new();
+        assert_eq!(mgr.cwd("ghost"), None);
     }
 
     #[test]

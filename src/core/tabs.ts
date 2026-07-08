@@ -32,6 +32,14 @@ export function setActiveTab(state: TabsState, id: string): TabsState {
   return { ...state, activeId: id };
 }
 
+/** Rename a tab. Unknown ids are ignored. */
+export function renameTab(state: TabsState, id: string, title: string): TabsState {
+  return {
+    ...state,
+    tabs: state.tabs.map((t) => (t.id === id ? { ...t, title } : t)),
+  };
+}
+
 /**
  * Remove a tab. If the closed tab was active, activate its right neighbor, or
  * the new last tab if it was rightmost. Closing the final tab yields an empty

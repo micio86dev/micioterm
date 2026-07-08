@@ -7,5 +7,7 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     exclude: ["src-tauri/**", "node_modules/**"],
+    // A stray `.only` must fail the run, not silently skip the rest of the suite.
+    allowOnly: false,
   },
 });

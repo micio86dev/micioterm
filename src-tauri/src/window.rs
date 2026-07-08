@@ -8,13 +8,14 @@ use tauri::{App, Manager, WebviewWindow};
 
 use crate::config::Config;
 
-/// Attach the behind-window blur to a specific window. No-op off macOS.
-pub fn apply_vibrancy_to(window: &WebviewWindow, config: &Config) {
+/// Apply a named blur material ("hud" or "under-window") to a window. No-op off
+/// macOS. Re-callable at runtime so the Preferences UI can change it live.
+pub fn apply_material(window: &WebviewWindow, material: &str) {
     #[cfg(target_os = "macos")]
     {
         use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
 
-        let material = match config.blur_material.as_str() {
+        let material = match material {
             "under-window" => NSVisualEffectMaterial::UnderWindowBackground,
             _ => NSVisualEffectMaterial::HudWindow,
         };
@@ -25,7 +26,12 @@ pub fn apply_vibrancy_to(window: &WebviewWindow, config: &Config) {
     }
 
     #[cfg(not(target_os = "macos"))]
-    let _ = (window, config);
+    let _ = (window, material);
+}
+
+/// Attach the active profile's behind-window blur to a specific window.
+pub fn apply_vibrancy_to(window: &WebviewWindow, config: &Config) {
+    apply_material(window, &config.active_profile().blur_material);
 }
 
 /// Attach the blur to the main window at startup.

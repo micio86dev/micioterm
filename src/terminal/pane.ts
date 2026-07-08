@@ -25,12 +25,16 @@ function newSessionId(): string {
 export interface PaneOptions {
   shell?: string;
   cwd?: string;
+  name?: string;
   scrollback?: number;
   fontFamily?: string;
   fontSize?: number;
   cursorBlink?: boolean;
   theme?: ITheme;
 }
+
+/** The live-updatable subset of {@link PaneOptions} — style, not shell/cwd. */
+export type PaneStyle = Pick<PaneOptions, "fontFamily" | "fontSize" | "cursorBlink" | "theme">;
 
 /**
  * One terminal pane: an xterm.js instance bound to exactly one backend PTY.
@@ -41,12 +45,18 @@ export class Pane {
   readonly sessionId: string;
   readonly element: HTMLDivElement;
 
+  /** User-given label for the pane (e.g. the project). Empty when unset. */
+  name: string;
+
   /** Called when the pane's shell exits (e.g. Ctrl+D). Set by the owner. */
   onExit?: () => void;
+  /** Called after the user renames the pane, so the owner can re-snapshot. */
+  onRename?: () => void;
 
   private readonly term: Terminal;
   private readonly fit: FitAddon;
   private readonly options: PaneOptions;
+  private readonly nameChip: HTMLDivElement;
   private unlisten?: UnlistenFn;
   private exitUnlisten?: UnlistenFn;
   private resizeObserver?: ResizeObserver;
@@ -55,9 +65,22 @@ export class Pane {
   constructor(options: PaneOptions = {}) {
     this.options = options;
     this.sessionId = newSessionId();
+    this.name = options.name ?? "";
 
     this.element = document.createElement("div");
     this.element.className = "pane";
+
+    // Small name chip (top-left overlay). Double-click to label the pane.
+    this.nameChip = document.createElement("div");
+    this.nameChip.className = "pane__name";
+    this.nameChip.title = "Name this pane (double-click)";
+    this.nameChip.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.beginRename();
+    });
+    this.element.appendChild(this.nameChip);
+    this.renderNameChip();
 
     this.term = new Terminal({
       allowProposedApi: true,
@@ -117,6 +140,83 @@ export class Pane {
 
   focus(): void {
     this.term.focus();
+  }
+
+  /** Set the pane's label and notify the owner (for session snapshots). */
+  setName(name: string): void {
+    this.name = name;
+    this.renderNameChip();
+    this.onRename?.();
+  }
+
+  private renderNameChip(): void {
+    this.nameChip.textContent = this.name || "＋";
+    this.nameChip.classList.toggle("pane__name--empty", !this.name);
+  }
+
+  /** Turn the chip into an inline text field to (re)label the pane. */
+  private beginRename(): void {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "pane__name-input";
+    input.value = this.name;
+    input.placeholder = "name…";
+
+    let settled = false;
+    const settle = (save: boolean): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (save) {
+        this.setName(input.value.trim());
+      } else {
+        this.renderNameChip();
+      }
+      this.focus();
+    };
+
+    input.addEventListener("keydown", (event) => {
+      // Keep keys off xterm and the global shortcuts while editing.
+      event.stopPropagation();
+      if (event.key === "Enter") {
+        event.preventDefault();
+        settle(true);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        settle(false);
+      }
+    });
+    input.addEventListener("blur", () => settle(true));
+
+    this.nameChip.replaceChildren(input);
+    this.nameChip.classList.remove("pane__name--empty");
+    input.focus();
+    input.select();
+  }
+
+  /**
+   * Apply a live style change (font, size, cursor blink, colors) to the running
+   * terminal — no respawn, the shell and scrollback are untouched. Used when the
+   * active profile changes from Preferences.
+   */
+  applyStyle(style: PaneStyle): void {
+    if (this.disposed) {
+      return;
+    }
+    if (style.fontFamily !== undefined) {
+      this.term.options.fontFamily = style.fontFamily;
+    }
+    if (style.fontSize !== undefined) {
+      this.term.options.fontSize = style.fontSize;
+    }
+    if (style.cursorBlink !== undefined) {
+      this.term.options.cursorBlink = style.cursorBlink;
+    }
+    if (style.theme !== undefined) {
+      this.term.options.theme = style.theme;
+    }
+    this.refit();
   }
 
   /** Clear the terminal, leaving the current prompt at the top (⌘K). */

@@ -61,3 +61,14 @@ export function ptyResize(sessionId: string, cols: number, rows: number): Promis
 export function ptyKill(sessionId: string): Promise<void> {
   return invoke("pty_kill", { sessionId });
 }
+
+/**
+ * The pane shell's working directory (for session restore), or null. Bounded by
+ * a timeout so a slow/hung cwd lookup (lsof) never freezes a split or a snapshot;
+ * the fallback is the default directory.
+ */
+export function ptyCwd(sessionId: string, timeoutMs = 600): Promise<string | null> {
+  const call = invoke<string | null>("pty_cwd", { sessionId });
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs));
+  return Promise.race([call, timeout]).catch(() => null);
+}

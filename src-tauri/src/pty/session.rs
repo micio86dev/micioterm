@@ -63,8 +63,12 @@ impl PtySession {
             cmd.env(key, value);
         }
         cmd.env("TERM", "xterm-256color");
+        // A restored cwd may no longer exist (dir deleted since last run); fall
+        // back to the inherited cwd rather than failing the spawn.
         if let Some(cwd) = &config.cwd {
-            cmd.cwd(cwd);
+            if std::path::Path::new(cwd).is_dir() {
+                cmd.cwd(cwd);
+            }
         }
 
         let child = pair.slave.spawn_command(cmd).map_err(to_io_err)?;
@@ -99,6 +103,12 @@ impl PtySession {
     pub fn write(&mut self, data: &[u8]) -> std::io::Result<()> {
         self.writer.write_all(data)?;
         self.writer.flush()
+    }
+
+    /// The child shell's OS process id, if still running. Used to look up its
+    /// working directory for session restore.
+    pub fn process_id(&self) -> Option<u32> {
+        self.child.process_id()
     }
 
     /// Resize the PTY. Dimensions are clamped to a valid size first.
