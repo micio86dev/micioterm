@@ -1,0 +1,49 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "MicioTerm",
+  "version": "0.1.0",
+  "identifier": "com.miciodev.terminal",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "title": "MicioTerm",
+        "width": 1024,
+        "height": 700,
+        "minWidth": 480,
+        "minHeight": 320,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": true,
+        "titleBarStyle": "Transparent"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "category": "public.app-category.developer-tools",
+    "copyright": "© 2026 MicioDev",
+    "shortDescription": "A native macOS terminal emulator with MicioDev branding.",
+    "longDescription": "MicioTerm is a translucent, blurred, native macOS terminal built with Tauri and xterm.js. Multiple tabs, up to 4 panes per tab, neon-green theming, and a baked-in startup banner.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
+  }
+}

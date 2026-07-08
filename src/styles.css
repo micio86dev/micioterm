@@ -1,0 +1,185 @@
+/*
+ * Base styles. html/body stay transparent so the macOS behind-window blur
+ * (NSVisualEffectView) shows through; #root carries the ~82%-black tint that
+ * darkens the blur. Colors and font come from src/theme/tokens.css.
+ */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: transparent;
+}
+
+body {
+  font-family: var(--font-mono);
+  color: var(--color-secondary);
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+/* Tab bar (top). */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  height: var(--tab-bar-height);
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 0 8px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tab-bar__logo {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  margin-right: 4px;
+  object-fit: contain;
+  border-radius: 5px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tab-bar__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  min-width: 90px;
+  max-width: 200px;
+  cursor: default;
+  color: var(--color-secondary-dim);
+  border-bottom: 2px solid transparent;
+}
+
+.tab--active {
+  color: var(--color-fg);
+  border-bottom-color: var(--color-fg);
+}
+
+.tab__label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.tab__close,
+.tab-bar__new {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.tab-bar__new {
+  flex: 0 0 auto;
+  color: var(--color-secondary-dim);
+  font-size: 18px;
+}
+
+/* Pane host fills the rest; one grid per tab, only the active grid is shown. */
+.pane-host {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Centered low-opacity logo watermark behind the panes. */
+.watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: min(42%, 340px);
+  opacity: var(--watermark-opacity);
+  pointer-events: none;
+}
+
+.pane-grid {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 6px;
+  padding: 6px 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.view--hidden {
+  display: none;
+}
+
+/* A grid cell. Active pane gets a green border/glow; inactive dimmed slightly. */
+.pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  opacity: 0.82;
+  transition: opacity 0.12s ease, border-color 0.12s ease;
+}
+
+.pane--active {
+  opacity: 1;
+  border-color: var(--accent-border);
+  box-shadow: inset 0 0 0 1px var(--accent-glow);
+}
+
+/* xterm fills the pane; keep its viewport transparent for the window blur. */
+.pane .xterm,
+.pane .xterm .xterm-viewport {
+  height: 100%;
+  background: transparent !important;
+}
+
+/* Subtle transient hint (e.g. the rejected 5th split). */
+.split-hint {
+  position: absolute;
+  z-index: 2;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--color-secondary);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--accent-border);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.split-hint--visible {
+  opacity: 1;
+}

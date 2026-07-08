@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+src-tauri/target/
+src-tauri/gen/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Signing / notarization secrets — never commit
+*.p12
+*.cer
+*.mobileprovision
+.env
+.env.*
+
+# Agent / skill tooling (not part of the app)
+.agents/
+.atl/
+skills-lock.json

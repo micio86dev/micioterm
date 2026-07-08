@@ -1,0 +1,25 @@
+/*
+ * Design tokens (spec §4). Define once, reuse everywhere. Colors, opacity, and
+ * font are tunable here; Phase 5 wires the TOML config onto these variables.
+ */
+:root {
+  /* Background: pure black at ~82% opacity so the OS blur shows through. */
+  --bg-opacity: 0.82;
+  --color-bg: rgba(0, 0, 0, var(--bg-opacity));
+
+  /* Primary (foreground) neon green; white secondary for UI chrome. */
+  --color-fg: #2fff5a;
+  --color-secondary: #ffffff;
+  --color-secondary-dim: rgba(255, 255, 255, 0.55);
+
+  /* Active-pane accent + subtle glow. */
+  --color-accent: #2fff5a;
+  --accent-border: rgba(47, 255, 90, 0.55);
+  --accent-glow: rgba(47, 255, 90, 0.18);
+
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, ui-monospace, monospace;
+  --font-size: 14px;
+
+  --tab-bar-height: 36px;
+  --watermark-opacity: 0.04;
+}
