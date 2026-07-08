@@ -26,6 +26,7 @@ fn echo_round_trips_through_the_session_manager() {
             move |bytes| {
                 let _ = tx.send(bytes);
             },
+            || {},
         )
         .expect("session should spawn");
 

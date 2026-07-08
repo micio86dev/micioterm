@@ -9,8 +9,12 @@ export interface KeyActions {
   splitPane: (direction: SplitDirection) => void;
   /** ⌘⌥Arrow: move focus between panes. */
   focusPane: (direction: FocusDirection) => void;
-  /** ⌃⌘F: toggle native fullscreen. */
+  /** ⌘F or ⌘Enter: toggle native fullscreen. */
   toggleFullscreen: () => void;
+  /** ⌘K: clear the active terminal. */
+  clearTerminal: () => void;
+  /** ⌘N: open a new window. */
+  newWindow: () => void;
 }
 
 const ARROWS: Record<string, FocusDirection> = {
@@ -34,8 +38,13 @@ export function installKeybindings(actions: KeyActions): () => void {
     const ctrl = event.ctrlKey;
     const alt = event.altKey;
 
-    // ⌃⌘F: toggle native fullscreen (standard macOS shortcut).
-    if (meta && ctrl && event.code === "KeyF") {
+    // ⌘F or ⌘Enter: toggle native fullscreen.
+    if (
+      meta &&
+      !ctrl &&
+      !alt &&
+      (event.code === "KeyF" || event.code === "Enter" || event.code === "NumpadEnter")
+    ) {
       return swallow(event, actions.toggleFullscreen);
     }
 
@@ -52,13 +61,19 @@ export function installKeybindings(actions: KeyActions): () => void {
       return swallow(event, () => actions.splitPane(shift ? "horizontal" : "vertical"));
     }
 
-    // ⌘T new tab, ⌘W close pane (no other modifiers).
+    // ⌘T new tab, ⌘W close pane, ⌘K clear terminal (no other modifiers).
     if (meta && !shift && !ctrl && !alt) {
       if (event.code === "KeyT") {
         return swallow(event, actions.newTab);
       }
       if (event.code === "KeyW") {
         return swallow(event, actions.closePane);
+      }
+      if (event.code === "KeyK") {
+        return swallow(event, actions.clearTerminal);
+      }
+      if (event.code === "KeyN") {
+        return swallow(event, actions.newWindow);
       }
     }
 

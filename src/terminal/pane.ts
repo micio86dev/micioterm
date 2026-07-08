@@ -8,7 +8,7 @@ import "@xterm/xterm/css/xterm.css";
 
 import type { ITheme } from "@xterm/xterm";
 
-import { onPtyOutput, ptyKill, ptyResize, ptySpawn, ptyWrite } from "./pty-bridge";
+import { onPtyExit, onPtyOutput, ptyKill, ptyResize, ptySpawn, ptyWrite } from "./pty-bridge";
 import { TERMINAL_FONT, TERMINAL_FONT_SIZE, xtermTheme } from "../theme/xterm-theme";
 
 let fallbackCounter = 0;
@@ -41,10 +41,14 @@ export class Pane {
   readonly sessionId: string;
   readonly element: HTMLDivElement;
 
+  /** Called when the pane's shell exits (e.g. Ctrl+D). Set by the owner. */
+  onExit?: () => void;
+
   private readonly term: Terminal;
   private readonly fit: FitAddon;
   private readonly options: PaneOptions;
   private unlisten?: UnlistenFn;
+  private exitUnlisten?: UnlistenFn;
   private resizeObserver?: ResizeObserver;
   private disposed = false;
 
@@ -87,6 +91,11 @@ export class Pane {
 
     // Subscribe before spawn so the startup banner and early output are captured.
     this.unlisten = await onPtyOutput(this.sessionId, (bytes) => this.term.write(bytes));
+    this.exitUnlisten = await onPtyExit(this.sessionId, () => {
+      if (!this.disposed) {
+        this.onExit?.();
+      }
+    });
     await ptySpawn({
       sessionId: this.sessionId,
       shell: this.options.shell,
@@ -110,6 +119,11 @@ export class Pane {
     this.term.focus();
   }
 
+  /** Clear the terminal, leaving the current prompt at the top (⌘K). */
+  clear(): void {
+    this.term.clear();
+  }
+
   /** Recompute cols/rows from the pane's pixel size (layout or window change). */
   refit(): void {
     if (this.disposed) {
@@ -129,6 +143,8 @@ export class Pane {
     this.disposed = true;
     this.resizeObserver?.disconnect();
     this.unlisten?.();
+    // Unsubscribe from exit before killing, so our own kill doesn't re-trigger it.
+    this.exitUnlisten?.();
     await ptyKill(this.sessionId).catch(() => undefined);
     this.term.dispose();
     this.element.remove();

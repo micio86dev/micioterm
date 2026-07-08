@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 import {
@@ -66,6 +67,8 @@ export class App {
       splitPane: (direction) => void this.activeGrid()?.splitActive(direction),
       focusPane: (direction) => this.activeGrid()?.focusActive(direction),
       toggleFullscreen: () => void this.toggleFullscreen(),
+      clearTerminal: () => this.activeGrid()?.clearActive(),
+      newWindow: () => void invoke("open_window").catch(() => undefined),
     });
   }
 

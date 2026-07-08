@@ -49,8 +49,8 @@ export class PaneGrid {
       return;
     }
     this.applyGrid();
-    await first.mount(this.element);
     this.wirePane(first);
+    await first.mount(this.element);
     first.focus();
   }
 
@@ -65,19 +65,31 @@ export class PaneGrid {
     this.layout = splitPane(this.layout, pane.sessionId, direction);
 
     this.applyGrid();
-    await pane.mount(this.element);
     this.wirePane(pane);
+    await pane.mount(this.element);
     this.refitAll();
     pane.focus();
   }
 
-  /** Close the active pane; reflow, or signal the tab to close if it was last. */
+  /** Close the active pane (⌘W); reflow, or close the tab if it was last. */
   closeActivePane(): void {
-    const id = this.layout.activeId;
+    this.closePaneById(this.layout.activeId);
+  }
+
+  /** Clear the active pane's terminal (⌘K). */
+  clearActive(): void {
+    this.panes.get(this.layout.activeId)?.clear();
+  }
+
+  /** Close a specific pane (⌘W on it, or its shell exited via Ctrl+D). */
+  private closePaneById(id: string): void {
     const pane = this.panes.get(id);
+    if (!pane) {
+      return; // already gone
+    }
     const next = closePane(this.layout, id);
     this.panes.delete(id);
-    void pane?.dispose();
+    void pane.dispose();
 
     if (next === null) {
       this.callbacks.onEmpty();
@@ -125,9 +137,10 @@ export class PaneGrid {
     this.panes.get(id)?.focus();
   }
 
-  /** Focus follows click. Capture phase, no preventDefault so selection works. */
+  /** Focus follows click; the shell exiting (Ctrl+D) closes the pane. */
   private wirePane(pane: Pane): void {
     pane.element.addEventListener("mousedown", () => this.selectPane(pane.sessionId), true);
+    pane.onExit = () => this.closePaneById(pane.sessionId);
   }
 
   private applyGrid(): void {

@@ -34,6 +34,11 @@ export function onPtyOutput(
   });
 }
 
+/** Subscribe to a session's exit (the shell process ended, e.g. Ctrl+D). */
+export function onPtyExit(sessionId: string, handler: () => void): Promise<UnlistenFn> {
+  return listen(`pty://exit/${sessionId}`, () => handler());
+}
+
 export function ptySpawn(opts: SpawnOptions): Promise<void> {
   return invoke("pty_spawn", {
     sessionId: opts.sessionId,

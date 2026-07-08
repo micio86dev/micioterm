@@ -34,9 +34,16 @@ impl SessionManager {
     }
 
     /// Spawn a new session under `id`. Errors if the id is already in use.
-    pub fn spawn<F>(&self, id: impl Into<String>, config: PtyConfig, on_output: F) -> std::io::Result<()>
+    pub fn spawn<F, G>(
+        &self,
+        id: impl Into<String>,
+        config: PtyConfig,
+        on_output: F,
+        on_exit: G,
+    ) -> std::io::Result<()>
     where
         F: Fn(Vec<u8>) + Send + 'static,
+        G: FnOnce() + Send + 'static,
     {
         let id = id.into();
         let mut sessions = self.lock();
@@ -46,7 +53,7 @@ impl SessionManager {
                 format!("pty session id {id:?} is already in use"),
             ));
         }
-        let session = PtySession::spawn(config, on_output)?;
+        let session = PtySession::spawn(config, on_output, on_exit)?;
         sessions.insert(id, session);
         Ok(())
     }
@@ -101,7 +108,7 @@ mod tests {
     #[test]
     fn spawn_registers_a_session() {
         let mgr = SessionManager::new();
-        mgr.spawn("pane-1", test_config(), |_| {}).unwrap();
+        mgr.spawn("pane-1", test_config(), |_| {}, || {}).unwrap();
         assert!(mgr.contains("pane-1"));
         assert_eq!(mgr.len(), 1);
     }
@@ -109,10 +116,10 @@ mod tests {
     #[test]
     fn spawn_rejects_a_duplicate_id() {
         let mgr = SessionManager::new();
-        mgr.spawn("pane-1", test_config(), |_| {}).unwrap();
+        mgr.spawn("pane-1", test_config(), |_| {}, || {}).unwrap();
 
         let err = mgr
-            .spawn("pane-1", test_config(), |_| {})
+            .spawn("pane-1", test_config(), |_| {}, || {})
             .expect_err("duplicate id must be rejected");
 
         assert_eq!(err.kind(), std::io::ErrorKind::AlreadyExists);
@@ -139,7 +146,7 @@ mod tests {
     #[test]
     fn kill_drops_the_session_from_the_registry() {
         let mgr = SessionManager::new();
-        mgr.spawn("pane-1", test_config(), |_| {}).unwrap();
+        mgr.spawn("pane-1", test_config(), |_| {}, || {}).unwrap();
 
         mgr.kill("pane-1").unwrap();
 

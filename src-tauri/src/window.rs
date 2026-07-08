@@ -1,19 +1,15 @@
 //! macOS window appearance: real behind-window blur via `NSVisualEffectView`.
 //!
-//! The window is configured `transparent: true` + `macOSPrivateApi: true` in
-//! tauri.conf.json; here we attach the vibrancy layer the transparent webview
-//! lets through. The 82%-black tint that darkens the blur lives in CSS.
+//! Windows are configured `transparent: true` + `macOSPrivateApi: true`; here we
+//! attach the vibrancy layer the transparent webview lets through. The 82%-black
+//! tint that darkens the blur lives in CSS.
 
-use tauri::{App, Manager};
+use tauri::{App, Manager, WebviewWindow};
 
 use crate::config::Config;
 
-/// Attach the behind-window blur to the main window. No-op off macOS.
-pub fn apply_window_effects(app: &App, config: &Config) {
-    let Some(window) = app.get_webview_window("main") else {
-        return;
-    };
-
+/// Attach the behind-window blur to a specific window. No-op off macOS.
+pub fn apply_vibrancy_to(window: &WebviewWindow, config: &Config) {
     #[cfg(target_os = "macos")]
     {
         use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
@@ -23,16 +19,18 @@ pub fn apply_window_effects(app: &App, config: &Config) {
             _ => NSVisualEffectMaterial::HudWindow,
         };
 
-        if let Err(err) = apply_vibrancy(
-            &window,
-            material,
-            Some(NSVisualEffectState::Active),
-            None,
-        ) {
+        if let Err(err) = apply_vibrancy(window, material, Some(NSVisualEffectState::Active), None) {
             log::warn!("failed to apply window vibrancy: {err}");
         }
     }
 
     #[cfg(not(target_os = "macos"))]
     let _ = (window, config);
+}
+
+/// Attach the blur to the main window at startup.
+pub fn apply_window_effects(app: &App, config: &Config) {
+    if let Some(window) = app.get_webview_window("main") {
+        apply_vibrancy_to(&window, config);
+    }
 }

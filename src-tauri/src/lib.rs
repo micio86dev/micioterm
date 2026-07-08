@@ -14,6 +14,7 @@ pub fn run() {
     .manage(SessionManager::new())
     .invoke_handler(tauri::generate_handler![
       commands::get_config,
+      commands::open_window,
       commands::pty_spawn,
       commands::pty_write,
       commands::pty_resize,

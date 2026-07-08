@@ -50,7 +50,8 @@ build path, which `tauri dev` uses).
 
 ## Configuration
 
-Zero config required — sane defaults match the visual spec. To customize, create:
+Zero config required — sane defaults match the visual spec. To customize colors,
+fonts, and sizes, copy [`config.example.toml`](./config.example.toml) to:
 
 ```
 ~/Library/Application Support/com.miciodev.terminal/config.toml
@@ -199,11 +200,14 @@ IPC bridge), `src/ui/` (tab bar, pane grid, keybindings), `src/theme/` &
 
 | Shortcut | Action |
 | --- | --- |
+| ⌘N | New window (each independent — great across monitors) |
 | ⌘T / ⌘W | New tab / close active pane (cascades to tab, then window) |
+| ⌘K | Clear the active terminal |
+| ⌃D | Close the pane (Ctrl+D exits the shell → pane closes) |
 | ⌃Tab, ⌘⇧] / ⌘⇧[ | Cycle tabs |
 | ⌘D / ⌘⇧D | Split pane left/right · top/bottom (max 4) |
 | ⌘⌥← ↑ → ↓ | Move focus between panes |
-| ⌃⌘F | Toggle fullscreen |
+| ⌘F or ⌘↩ | Toggle fullscreen |
 | ⌘C / ⌘V | Copy selection / paste |
 
 ## Non-goals (v1)

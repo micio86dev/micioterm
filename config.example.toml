@@ -1,0 +1,41 @@
+# MicioTerm configuration — copy to:
+#   ~/Library/Application Support/com.miciodev.terminal/config.toml
+# Every key is optional; unset keys fall back to the defaults shown here.
+# A missing or invalid file just uses the defaults. Restart the app to apply.
+
+# --- Window ---
+opacity = 0.82            # background tint over the blur (0.0–1.0)
+blur_material = "hud"     # "hud" or "under-window"
+watermark = true          # centered logo watermark behind the panes
+
+# --- Terminal text: font + size ---
+font_family = "JetBrains Mono"   # any installed font; JetBrains Mono is bundled
+font_size = 14
+
+# --- Behavior ---
+cursor_blink = true
+show_banner = true        # the MicioDev logo banner in every new pane
+scrollback = 10000        # lines of history per pane
+# default_shell = "/bin/zsh"   # omit to use $SHELL
+
+# --- Color profile: any subset of the 16 ANSI colors + fg/cursor/selection ---
+[palette]
+foreground = "#2fff5a"
+cursor     = "#2fff5a"
+selection  = "rgba(47, 255, 90, 0.30)"
+black          = "#15161b"
+red            = "#ff5c57"
+green          = "#2fff5a"
+yellow         = "#f3f99d"
+blue           = "#57c7ff"
+magenta        = "#ff6ac1"
+cyan           = "#9aedfe"
+white          = "#e6e6e6"
+bright_black   = "#6b7089"
+bright_red     = "#ff6e67"
+bright_green   = "#5aff78"
+bright_yellow  = "#f4f99d"
+bright_blue    = "#7fb5ff"
+bright_magenta = "#ff8ad0"
+bright_cyan    = "#b3f7ff"
+bright_white   = "#ffffff"

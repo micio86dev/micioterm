@@ -1,62 +1,36 @@
-//! Startup banner (spec §4.1). The MicioDev logo, printed in neon green in every
-//! new pane before the shell prompt. Width-corrected so it renders at the logo's
-//! ~1.55:1 aspect (terminal cells are ~2:1). Fixed asset — do not regenerate.
+//! Startup banner (spec §4.1). A compact MicioDev logo, printed in neon green in
+//! every new pane before the shell prompt. Rendered at the logo's ~1.55:1 aspect
+//! (terminal cells are ~2:1). Fixed asset — do not regenerate.
 
 const BANNER_ART: &str = r#"
-                #@%                                 %@%
-               @@#%@@%                           %@@%#@@
-              *%=    @@@@                     @@@@    .%#
-              @%       @@@@                 @@@@       %@
-              %%          @@@@@@@@@@@@@@@@@@@          %%
-             :%%                                       #%:
-              %%                                       #%
-              @@                                       %@
-              *%*                                     +%*
-               %@                                     @%
-              %@                                       @%
-    =#%%%%%##@@                                         %@##%%%%%#=
-  @@@*-                                                         =*@@@
-%%%   #%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%%#   %%
-%%%  #%                                                         %#  %%
-%%%  *%                                                         %*  %%
-%%%  *%                                                         @*  %%
-%%%  *%                               %@.                       @*  %%
-%%%  *%                  :@@          @@   +@#                  @*  %%
-%%%  *%                @@@%          @@     *@@@                @*  %%
-%%%  *%              @@@@          @@@        %%@@              @*  %%
-%%%  *%            @@@             @@%           @@%            @*  %%
-%%%  *%           @@%             @@@             %@@           @*  %%
-%%%  *%             @@@          @@             @@@             @*  %%
-%%%  *%               @@@%      #@*          %@@@               @*  %%
-%%%  *%                ..@@#   :@@         %@@                  @*  %%
-%%%  *%                        @@                               @*  %%
-%%%  *%                                                         @*  %%
-%%%  *%                                                         @*  %%
-%%%  #%                                                         %*  %%
-%%%  :@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.  %%
-%%%                                                                 %%
-%%%                                                                 %%
-  @@#                                                             #@@
-   *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*
-                            %%           @%
-                            @*            @
-
-           **@@@@@@@. @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@--
-             @%-                                       *%%
-              *@%                     -               @@:
-                @@                 %%@*     %*      =@@
-                 %@#             #@@@     @%       %@#
-                  *@@          #@@      @@        @@-
-                    @@:      %@@      @@        *@@
-                     %@##  @@@    @@@@@       @@@#
-                       @@@%@    @@@**        @@@
-                         @%   @@%     %    %@@
-                          #@%%+    @@=    @@+
-                            @%    %      @@
-                             @@#       %@@
-                              #@@     @@*
-                                @@ ..@@
-                                 @@@@%
+       %%%%             %%%%%
+      %@   %%% %%%%%  %%%   @
+      %%     %%%    %%%     %%
+      %%                    %%
+       @                   %@
+     %%%                    %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@ %%%%                        %%%% @
+@ %%                            %% @
+@ %%        %%     @  %%        %% @
+@ %%      %%%     @%   %%%      %%%@
+@ %%     %%      %%     %@%     %%%@
+@ %%       %%   %%     %%       %% @
+@ %%        %   %     %         %% @
+@ %%                            %% @
+@ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% @
+@                                 %@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+              %      %
+      %%%%  %%%%%%%%%%%%%%%%%%
+      %@%          %       %@%
+       %%%       %%       %%
+         %%    %%%  %    %%
+          %%%%%%%%%%   %%
+            %%%%%%    %%
+             %@%    %%
+               %%  %%
+                %%%
 "#;
 
 /// Bytes to emit on a new pane's output channel, or empty when disabled.
@@ -84,7 +58,7 @@ mod tests {
     #[test]
     fn enabled_banner_carries_art_color_and_reset() {
         let text = String::from_utf8(banner_bytes(true)).unwrap();
-        assert!(text.contains("@@@"), "banner must include the logo art");
+        assert!(text.contains("%%"), "banner must include the logo art");
         assert!(text.contains("\x1b[38;2;47;255;90m"), "truecolor neon green");
         assert!(text.contains("\x1b[1;92m"), "bright-green fallback");
         assert!(text.contains("\x1b[0m"), "resets color");

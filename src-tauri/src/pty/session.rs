@@ -37,9 +37,10 @@ fn to_io_err<E: std::fmt::Display>(e: E) -> std::io::Error {
 impl PtySession {
     /// Spawn a shell on a fresh PTY. `on_output` is invoked from a dedicated
     /// reader thread with each chunk of bytes the shell produces, until EOF.
-    pub fn spawn<F>(config: PtyConfig, on_output: F) -> std::io::Result<Self>
+    pub fn spawn<F, G>(config: PtyConfig, on_output: F, on_exit: G) -> std::io::Result<Self>
     where
         F: Fn(Vec<u8>) + Send + 'static,
+        G: FnOnce() + Send + 'static,
     {
         let (cols, rows) = clamp_dimensions(config.cols, config.rows);
         let pty_system = native_pty_system();
@@ -82,6 +83,8 @@ impl PtySession {
                     Err(_) => break,
                 }
             }
+            // The shell exited (e.g. Ctrl+D at the prompt): notify the frontend.
+            on_exit();
         });
 
         Ok(Self {
@@ -149,6 +152,7 @@ mod tests {
             move |bytes| {
                 let _ = tx.send(bytes);
             },
+            || {},
         )
         .expect("pty should spawn");
 

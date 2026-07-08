@@ -2,12 +2,33 @@
 //! [`SessionManager`]. Output bytes are base64-encoded and streamed to the
 //! frontend on the per-session event `pty://output/<session_id>`.
 
+use std::sync::atomic::{AtomicU64, Ordering};
+
 use base64::Engine;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, State, WebviewUrl, WebviewWindowBuilder};
 
 use crate::config::Config;
 use crate::pty::manager::SessionManager;
 use crate::pty::session::PtyConfig;
+
+/// Monotonic counter for unique window labels.
+static WINDOW_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+/// Open a new terminal window (⌘N). Each window is independent, with its own
+/// tabs and panes; handy for spanning multiple monitors.
+#[tauri::command]
+pub fn open_window(app: AppHandle, config: State<'_, Config>) -> Result<(), String> {
+    let label = format!("win-{}", WINDOW_COUNTER.fetch_add(1, Ordering::Relaxed));
+    let window = WebviewWindowBuilder::new(&app, &label, WebviewUrl::App("index.html".into()))
+        .title("MicioTerm")
+        .inner_size(1024.0, 700.0)
+        .min_inner_size(480.0, 320.0)
+        .transparent(true)
+        .build()
+        .map_err(|e| e.to_string())?;
+    crate::window::apply_vibrancy_to(&window, &config);
+    Ok(())
+}
 
 /// Event name a pane listens on for its shell output.
 fn output_event(session_id: &str) -> String {
@@ -57,6 +78,8 @@ pub fn pty_spawn(
 
     let output_app = app.clone();
     let output_event_name = event.clone();
+    let exit_app = app.clone();
+    let exit_event_name = format!("pty://exit/{session_id}");
     sessions
         .spawn(
             session_id,
@@ -70,6 +93,9 @@ pub fn pty_spawn(
             move |bytes| {
                 let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
                 let _ = output_app.emit(&output_event_name, encoded);
+            },
+            move || {
+                let _ = exit_app.emit(&exit_event_name, ());
             },
         )
         .map_err(|e| e.to_string())
