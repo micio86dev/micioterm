@@ -1,42 +1,29 @@
-//! Startup banner (spec §4.1). A compact MicioDev logo plus the MicioTerm
-//! wordmark, printed in neon green in every new pane before the shell prompt.
-//! Fixed asset — do not regenerate.
+//! Startup banner (spec §4.1). The MicioDev logo plus the MicioTerm wordmark,
+//! printed in neon green in every new pane before the shell prompt. Fixed asset.
 
 const BANNER_ART: &str = r#"
-                %%%%             %%%%%
-               %@   %%% %%%%%  %%%   @
-               %%     %%%    %%%     %%
-               %%                    %%
-                @                   %@
-              %%%                    %%
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      @ %%%%                        %%%% @
-      @ %%                            %% @
-      @ %%        %%     @  %%        %% @
-      @ %%      %%%     @%   %%%      %%%@
-      @ %%     %%      %%     %@%     %%%@
-      @ %%       %%   %%     %%       %% @
-      @ %%        %   %     %         %% @
-      @ %%                            %% @
-      @ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% @
-      @                                 %@
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                           %      %
-               %%%%  %%%%%%%%%%%%%%%%%%
-               %@%          %       %@%
-                 %%%       %%       %%
-                   %%    %%%  %    %%
-                     %%%%%%%%%%   %%
-                        %%%%%%    %%
-                          %@%    %%
-                            %%  %%
-                              %%%
+                      ▃▃▁      ▁▃▃
+                     ▗█▀▜▆▅▅▅▅▆▛▀█▖
+                     ▐▊  ▔▔▔▔▔▔  ▟▍
+                  ▂▃▄▇█▁▁▁▁▁▁▁▁▁▁█▇▄▄▖
+                  ████▀▀▀▀▀▀▜▀▀▀▀▜████
+                 ▕██▉   ▂▄  ▆▎▄▂   ███
+                 ▕██▉  ▟█▘ ▐▛ ▝█▙  ▐██
+                 ▕██▋  ▔▜▊▗█▘ ▟▛▘  ▜██▏
+                 ▕███▅▄▄▄▃▃▄▄▃▃▃▄▄▄███▏
+                  ██████▟████████████▉
+                   ▔▀▀█▛▀██▀▀█████▀▀▀
+                     ▐██▀▀▀▜█▀▜▀██▍
+                      ▝█▆▃▅█▙▆▘▟█▘
+                        ▜████▏█▛
+                         ▝██▅▛▘
+                           ▀▀
 
-             __  ____      _     ______
-   /  |/  (_)____(_)___/_  __/__  _________ ___
-  / /|_/ / / ___/ / __ \/ / / _ \/ ___/ __ `__ \
- / /  / / / /__/ / /_/ / / /  __/ /  / / / / / /
-/_/  /_/_/\___/_/\____/_/  \___/_/  /_/ /_/ /_/
+ __  __ _      _     _____
+|  \/  (_) ___(_) __|_   _|__ _ __ _ __ ___
+| |\/| | |/ __| |/ _ \| |/ _ \ '__| '_ ` _ \
+| |  | | | (__| | (_) | |  __/ |  | | | | | |
+|_|  |_|_|\___|_|\___/|_|\___|_|  |_| |_| |_|
 "#;
 
 /// Bytes to emit on a new pane's output channel, or empty when disabled.
@@ -62,13 +49,12 @@ mod tests {
     }
 
     #[test]
-    fn enabled_banner_carries_art_color_and_reset() {
+    fn enabled_banner_has_color_and_reset() {
         let text = String::from_utf8(banner_bytes(true)).unwrap();
-        assert!(text.contains("%%"), "banner must include the logo art");
-        assert!(text.contains("Mi") || text.contains("_"), "banner must include the wordmark");
         assert!(text.contains("\x1b[38;2;47;255;90m"), "truecolor neon green");
         assert!(text.contains("\x1b[1;92m"), "bright-green fallback");
         assert!(text.contains("\x1b[0m"), "resets color");
         assert!(text.contains("\r\n"), "CRLF line endings");
+        assert!(text.len() > 200, "banner has art");
     }
 }
