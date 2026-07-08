@@ -201,8 +201,9 @@ IPC bridge), `src/ui/` (tab bar, pane grid, keybindings), `src/theme/` &
 | --- | --- |
 | ⌘T / ⌘W | New tab / close active pane (cascades to tab, then window) |
 | ⌃Tab, ⌘⇧] / ⌘⇧[ | Cycle tabs |
-| ⌘D / ⌘⇧D | Split pane top/bottom · left/right (max 4) |
+| ⌘D / ⌘⇧D | Split pane left/right · top/bottom (max 4) |
 | ⌘⌥← ↑ → ↓ | Move focus between panes |
+| ⌃⌘F | Toggle fullscreen |
 | ⌘C / ⌘V | Copy selection / paste |
 
 ## Non-goals (v1)

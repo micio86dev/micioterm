@@ -21,7 +21,7 @@
         "resizable": true,
         "fullscreen": false,
         "transparent": true,
-        "titleBarStyle": "Transparent"
+        "titleBarStyle": "Visible"
       }
     ],
     "security": {

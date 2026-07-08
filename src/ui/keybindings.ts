@@ -5,10 +5,12 @@ export interface KeyActions {
   /** ⌘W: close the active pane (cascades to tab, then window). */
   closePane: () => void;
   cycleTab: (direction: 1 | -1) => void;
-  /** ⌘D horizontal (top/bottom), ⌘⇧D vertical (left/right). */
+  /** ⌘D vertical (left/right), ⌘⇧D horizontal (top/bottom). */
   splitPane: (direction: SplitDirection) => void;
   /** ⌘⌥Arrow: move focus between panes. */
   focusPane: (direction: FocusDirection) => void;
+  /** ⌃⌘F: toggle native fullscreen. */
+  toggleFullscreen: () => void;
 }
 
 const ARROWS: Record<string, FocusDirection> = {
@@ -32,6 +34,11 @@ export function installKeybindings(actions: KeyActions): () => void {
     const ctrl = event.ctrlKey;
     const alt = event.altKey;
 
+    // ⌃⌘F: toggle native fullscreen (standard macOS shortcut).
+    if (meta && ctrl && event.code === "KeyF") {
+      return swallow(event, actions.toggleFullscreen);
+    }
+
     // ⌘⌥Arrow: directional pane focus.
     if (meta && alt) {
       const direction = ARROWS[event.code];
@@ -40,9 +47,9 @@ export function installKeybindings(actions: KeyActions): () => void {
       }
     }
 
-    // ⌘D split (top/bottom), ⌘⇧D split (left/right).
+    // ⌘D split left/right, ⌘⇧D split top/bottom.
     if (meta && !ctrl && !alt && event.code === "KeyD") {
-      return swallow(event, () => actions.splitPane(shift ? "vertical" : "horizontal"));
+      return swallow(event, () => actions.splitPane(shift ? "horizontal" : "vertical"));
     }
 
     // ⌘T new tab, ⌘W close pane (no other modifiers).

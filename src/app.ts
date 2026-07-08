@@ -65,6 +65,7 @@ export class App {
       cycleTab: (direction) => this.cycle(direction),
       splitPane: (direction) => void this.activeGrid()?.splitActive(direction),
       focusPane: (direction) => this.activeGrid()?.focusActive(direction),
+      toggleFullscreen: () => void this.toggleFullscreen(),
     });
   }
 
@@ -152,6 +153,11 @@ export class App {
 
   private activeGrid(): PaneGrid | undefined {
     return this.state.activeId ? this.views.get(this.state.activeId) : undefined;
+  }
+
+  private async toggleFullscreen(): Promise<void> {
+    const win = getCurrentWindow();
+    await win.setFullscreen(!(await win.isFullscreen()));
   }
 
   /** Show only the active tab's grid, refit it, focus it, repaint the tab bar. */
