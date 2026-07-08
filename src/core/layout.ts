@@ -164,6 +164,17 @@ function neighborsFor(count: number, orientation: SplitDirection): Neighbors[] {
   }
 }
 
+/** Cycle focus to the next (+1) or previous (-1) pane, wrapping around. */
+export function cyclePane(layout: PaneLayout, direction: 1 | -1): PaneLayout {
+  if (layout.panes.length <= 1) {
+    return layout;
+  }
+  const current = layout.panes.indexOf(layout.activeId);
+  const count = layout.panes.length;
+  const next = (current + direction + count) % count;
+  return { ...layout, activeId: layout.panes[next] };
+}
+
 /** Move focus to the neighboring pane in `direction`, if one exists. */
 export function focusDirection(layout: PaneLayout, direction: FocusDirection): PaneLayout {
   const index = layout.panes.indexOf(layout.activeId);

@@ -202,12 +202,15 @@ IPC bridge), `src/ui/` (tab bar, pane grid, keybindings), `src/theme/` &
 | --- | --- |
 | ⌘N | New window (each independent — great across monitors) |
 | ⌘T / ⌘W | New tab / close active pane (cascades to tab, then window) |
+| ⌘1–⌘9 | Select tab N (⌘9 = last) |
+| ⌃Tab, ⌘⇧] / ⌘⇧[ | Cycle tabs |
 | ⌘K | Clear the active terminal |
 | ⌃D | Close the pane (Ctrl+D exits the shell → pane closes) |
-| ⌃Tab, ⌘⇧] / ⌘⇧[ | Cycle tabs |
 | ⌘D / ⌘⇧D | Split pane left/right · top/bottom (max 4) |
-| ⌘⌥← ↑ → ↓ | Move focus between panes |
+| ⌘] / ⌘[ | Next / previous pane |
+| ⌘⌥← ↑ → ↓ | Move focus between panes directionally |
 | ⌘F or ⌘↩ | Toggle fullscreen |
+| ⌘/ | Show / hide the keyboard-shortcuts help |
 | ⌘C / ⌘V | Copy selection / paste |
 
 ## Non-goals (v1)

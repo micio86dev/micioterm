@@ -137,13 +137,14 @@ body {
   display: none;
 }
 
-/* A grid cell. Active pane gets a green border/glow; inactive dimmed slightly. */
+/* A grid cell. Panes are separated by a faint gray line; the active pane gets a
+   green border/glow, inactive ones are dimmed slightly. */
 .pane {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   padding: 4px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   opacity: 0.82;
   transition: opacity 0.12s ease, border-color 0.12s ease;
@@ -182,4 +183,82 @@ body {
 
 .split-hint--visible {
   opacity: 1;
+}
+
+/* Keyboard-shortcuts help overlay (⌘/). */
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.help-overlay--hidden {
+  display: none;
+}
+
+.help-card {
+  background: rgba(10, 14, 11, 0.97);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 22px 26px;
+  max-width: 90vw;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.55);
+  color: var(--color-secondary);
+  font-size: 13px;
+}
+
+.help-title {
+  color: var(--color-fg);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.help-groups {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.help-group__name {
+  color: var(--color-secondary-dim);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  margin-bottom: 9px;
+}
+
+.help-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+.help-keys {
+  color: var(--color-fg);
+  background: rgba(47, 255, 90, 0.08);
+  border: 1px solid rgba(47, 255, 90, 0.25);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  min-width: 104px;
+  text-align: center;
+}
+
+.help-action {
+  color: var(--color-secondary);
+}
+
+.help-hint {
+  margin-top: 18px;
+  color: var(--color-secondary-dim);
+  font-size: 11px;
+  text-align: center;
 }

@@ -9,6 +9,7 @@ import {
   setActiveTab,
   type TabsState,
 } from "./core/tabs";
+import { HelpOverlay } from "./ui/help-overlay";
 import { installKeybindings } from "./ui/keybindings";
 import { PaneGrid } from "./ui/pane-grid";
 import { TabBar } from "./ui/tab-bar";
@@ -38,6 +39,7 @@ export class App {
   private readonly tabBar: TabBar;
   private readonly host: HTMLDivElement;
   private readonly watermark: HTMLDivElement;
+  private readonly help = new HelpOverlay();
   private config: TerminalConfig | undefined;
   private hintTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -58,18 +60,30 @@ export class App {
     this.watermark.style.backgroundImage = `url(${logoUrl})`;
     this.host.appendChild(this.watermark);
 
-    this.root.append(this.tabBar.element, this.host);
+    this.root.append(this.tabBar.element, this.host, this.help.element);
 
     installKeybindings({
       newTab: () => void this.newTab(),
       closePane: () => this.activeGrid()?.closeActivePane(),
       cycleTab: (direction) => this.cycle(direction),
+      selectTab: (oneBased) => this.selectTab(oneBased),
       splitPane: (direction) => void this.activeGrid()?.splitActive(direction),
       focusPane: (direction) => this.activeGrid()?.focusActive(direction),
+      cyclePane: (direction) => this.activeGrid()?.cycleActive(direction),
       toggleFullscreen: () => void this.toggleFullscreen(),
       clearTerminal: () => this.activeGrid()?.clearActive(),
       newWindow: () => void invoke("open_window").catch(() => undefined),
+      toggleHelp: () => this.help.toggle(),
     });
+  }
+
+  /** Jump to a tab by 1-based number; ⌘9 selects the last tab. */
+  private selectTab(oneBased: number): void {
+    const index = oneBased === 9 ? this.state.tabs.length - 1 : oneBased - 1;
+    const tab = this.state.tabs[index];
+    if (tab) {
+      this.switchTo(tab.id);
+    }
   }
 
   async start(): Promise<void> {

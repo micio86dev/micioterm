@@ -2,6 +2,7 @@ import {
   canSplit,
   closePane,
   createLayout,
+  cyclePane,
   focusDirection,
   gridPlan,
   setActivePane,
@@ -105,6 +106,16 @@ export class PaneGrid {
   focusActive(direction: FocusDirection): void {
     const before = this.layout.activeId;
     this.layout = focusDirection(this.layout, direction);
+    if (this.layout.activeId !== before) {
+      this.applyGrid();
+      this.panes.get(this.layout.activeId)?.focus();
+    }
+  }
+
+  /** Cycle focus to the next (+1) / previous (-1) pane (⌘] / ⌘[). */
+  cycleActive(direction: 1 | -1): void {
+    const before = this.layout.activeId;
+    this.layout = cyclePane(this.layout, direction);
     if (this.layout.activeId !== before) {
       this.applyGrid();
       this.panes.get(this.layout.activeId)?.focus();

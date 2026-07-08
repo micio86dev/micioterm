@@ -4,6 +4,7 @@ import {
   canSplit,
   closePane,
   createLayout,
+  cyclePane,
   focusDirection,
   gridPlan,
   MAX_PANES,
@@ -122,6 +123,19 @@ describe("focusDirection", () => {
   it("is a no-op when there is no neighbor in that direction", () => {
     const single = createLayout("only");
     expect(focusDirection(single, "right").activeId).toBe("only");
+  });
+});
+
+describe("cyclePane", () => {
+  it("moves focus to the next pane and wraps around", () => {
+    const three = withPanes(3); // active p2 (last)
+    expect(cyclePane(three, 1).activeId).toBe("p0"); // wraps
+    expect(cyclePane(setActivePane(three, "p0"), 1).activeId).toBe("p1");
+    expect(cyclePane(setActivePane(three, "p0"), -1).activeId).toBe("p2"); // wraps back
+  });
+
+  it("is a no-op with a single pane", () => {
+    expect(cyclePane(createLayout("only"), 1).activeId).toBe("only");
   });
 });
 

@@ -5,10 +5,16 @@ export interface KeyActions {
   /** ⌘W: close the active pane (cascades to tab, then window). */
   closePane: () => void;
   cycleTab: (direction: 1 | -1) => void;
+  /** ⌘1–⌘9: jump to tab N (⌘9 = last). */
+  selectTab: (oneBased: number) => void;
   /** ⌘D vertical (left/right), ⌘⇧D horizontal (top/bottom). */
   splitPane: (direction: SplitDirection) => void;
-  /** ⌘⌥Arrow: move focus between panes. */
+  /** ⌘⌥Arrow: move focus between panes directionally. */
   focusPane: (direction: FocusDirection) => void;
+  /** ⌘] / ⌘[: cycle focus to the next / previous pane. */
+  cyclePane: (direction: 1 | -1) => void;
+  /** ⌘/ : toggle the keyboard-shortcuts help overlay. */
+  toggleHelp: () => void;
   /** ⌘F or ⌘Enter: toggle native fullscreen. */
   toggleFullscreen: () => void;
   /** ⌘K: clear the active terminal. */
@@ -22,6 +28,18 @@ const ARROWS: Record<string, FocusDirection> = {
   ArrowDown: "down",
   ArrowLeft: "left",
   ArrowRight: "right",
+};
+
+const DIGITS: Record<string, number> = {
+  Digit1: 1,
+  Digit2: 2,
+  Digit3: 3,
+  Digit4: 4,
+  Digit5: 5,
+  Digit6: 6,
+  Digit7: 7,
+  Digit8: 8,
+  Digit9: 9,
 };
 
 /**
@@ -74,6 +92,19 @@ export function installKeybindings(actions: KeyActions): () => void {
       }
       if (event.code === "KeyN") {
         return swallow(event, actions.newWindow);
+      }
+      if (event.code === "Slash") {
+        return swallow(event, actions.toggleHelp);
+      }
+      if (event.code === "BracketRight") {
+        return swallow(event, () => actions.cyclePane(1));
+      }
+      if (event.code === "BracketLeft") {
+        return swallow(event, () => actions.cyclePane(-1));
+      }
+      const digit = DIGITS[event.code];
+      if (digit) {
+        return swallow(event, () => actions.selectTab(digit));
       }
     }
 
