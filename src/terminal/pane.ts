@@ -291,10 +291,10 @@ export class Pane {
       return false;
     }
     if (key === "v") {
-      void navigator.clipboard
-        .readText()
-        .then((text) => ptyWrite(this.sessionId, text))
-        .catch(() => undefined);
+      // Block xterm from processing the keydown; the browser fires a separate
+      // `paste` event that xterm handles natively via onData → ptyWrite.
+      // Calling readText() here would trigger macOS's clipboard permission UI,
+      // causing a double-paste when the user clicks "Paste" on the system popup.
       return false;
     }
     return true;

@@ -331,18 +331,16 @@ describe("Pane.handleKey (clipboard)", () => {
     expect(writeText).not.toHaveBeenCalled();
   });
 
-  it("pastes on ⌘V, writing the clipboard to the PTY", async () => {
+  it("blocks ⌘V keydown so the native paste event reaches xterm (no double-paste)", () => {
+    // handleKey must return false to suppress xterm's raw keydown processing.
+    // The actual paste goes through the browser's `paste` event → xterm onData →
+    // ptyWrite, avoiding the macOS clipboard permission popup that caused double-paste.
     const pane = new Pane();
-    await pane.mount(document.createElement("div"));
-    readText.mockResolvedValue("clip contents");
 
     const result = key(pane, "v");
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(result).toBe(false);
-    expect(readText).toHaveBeenCalled();
-    expect(ptyWrite).toHaveBeenCalledWith(pane.sessionId, "clip contents");
+    expect(readText).not.toHaveBeenCalled();
   });
 
   it("lets non-meta keys through", () => {
