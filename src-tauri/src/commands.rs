@@ -6,7 +6,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
 use base64::Engine;
-use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri::{
+    AppHandle, Emitter, Manager, Runtime, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
+};
 
 use crate::config::Config;
 use crate::pty::manager::SessionManager;
@@ -37,7 +39,10 @@ fn atomic_write(dir: &std::path::Path, filename: &str, contents: &str) -> Result
 /// Open a new terminal window (⌘N). Each window is independent, with its own
 /// tabs and panes; handy for spanning multiple monitors.
 #[tauri::command]
-pub fn open_window(app: AppHandle, config: State<'_, Mutex<Config>>) -> Result<(), String> {
+pub fn open_window<R: Runtime>(
+    app: AppHandle<R>,
+    config: State<'_, Mutex<Config>>,
+) -> Result<(), String> {
     let label = format!("win-{}", WINDOW_COUNTER.fetch_add(1, Ordering::Relaxed));
     let window = WebviewWindowBuilder::new(&app, &label, WebviewUrl::App("index.html".into()))
         .title("MicioTerm")
@@ -71,8 +76,8 @@ pub fn get_config(config: State<'_, Mutex<Config>>) -> Config {
 /// `config.toml` atomically (temp file + rename), then swap the shared
 /// in-memory copy so new windows/panes pick it up.
 #[tauri::command]
-pub fn save_config(
-    app: AppHandle,
+pub fn save_config<R: Runtime>(
+    app: AppHandle<R>,
     config: State<'_, Mutex<Config>>,
     new_config: Config,
 ) -> Result<(), String> {
@@ -90,15 +95,15 @@ pub fn save_config(
 
 /// Change the calling window's blur material live (Preferences → background).
 #[tauri::command]
-pub fn set_blur_material(window: WebviewWindow, material: String) {
+pub fn set_blur_material<R: Runtime>(window: WebviewWindow<R>, material: String) {
     crate::window::apply_material(&window, &material);
 }
 
 /// Spawn a shell for a pane. The frontend generates `session_id`, subscribes to
 /// `pty://output/<session_id>`, then calls this — so no early output is lost.
 #[tauri::command]
-pub fn pty_spawn(
-    app: AppHandle,
+pub fn pty_spawn<R: Runtime>(
+    app: AppHandle<R>,
     sessions: State<'_, SessionManager>,
     config: State<'_, Mutex<Config>>,
     session_id: String,
@@ -193,14 +198,71 @@ pub fn pty_cwd(state: State<'_, SessionManager>, session_id: String) -> Option<S
 /// Written atomically so it survives an abrupt ⌘Q — unlike WebKit localStorage,
 /// which may not flush before the app is terminated.
 #[tauri::command]
-pub fn save_session(app: AppHandle, snapshot: String) -> Result<(), String> {
+pub fn save_session<R: Runtime>(app: AppHandle<R>, snapshot: String) -> Result<(), String> {
     let dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
     atomic_write(&dir, "session.json", &snapshot)
 }
 
 /// Load the persisted session snapshot JSON, if any.
 #[tauri::command]
-pub fn load_session(app: AppHandle) -> Option<String> {
+pub fn load_session<R: Runtime>(app: AppHandle<R>) -> Option<String> {
     let dir = app.path().app_config_dir().ok()?;
     std::fs::read_to_string(dir.join("session.json")).ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A process-unique scratch dir so parallel test runs don't collide.
+    fn scratch_dir(tag: &str) -> std::path::PathBuf {
+        let seq = WRITE_COUNTER.fetch_add(1, Ordering::Relaxed);
+        std::env::temp_dir().join(format!("micioterm_test_{}_{tag}_{seq}", std::process::id()))
+    }
+
+    #[test]
+    fn output_event_is_namespaced_per_session() {
+        assert_eq!(output_event("abc"), "pty://output/abc");
+    }
+
+    #[test]
+    fn default_shell_prefers_env_then_falls_back() {
+        // default_shell reads $SHELL; it must always yield a non-empty path.
+        let shell = default_shell();
+        assert!(shell.starts_with('/'), "expected an absolute shell path, got {shell:?}");
+    }
+
+    #[test]
+    fn atomic_write_creates_the_file_with_the_contents() {
+        let dir = scratch_dir("write");
+        atomic_write(&dir, "out.txt", "hello world").unwrap();
+        let written = std::fs::read_to_string(dir.join("out.txt")).unwrap();
+        assert_eq!(written, "hello world");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn atomic_write_overwrites_and_leaves_no_temp_files() {
+        let dir = scratch_dir("overwrite");
+        atomic_write(&dir, "cfg.toml", "first").unwrap();
+        atomic_write(&dir, "cfg.toml", "second").unwrap();
+        assert_eq!(std::fs::read_to_string(dir.join("cfg.toml")).unwrap(), "second");
+
+        // No stray `*.tmp` files remain after the rename.
+        let leftovers: Vec<_> = std::fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|e| e.file_name().to_string_lossy().contains(".tmp"))
+            .collect();
+        assert!(leftovers.is_empty(), "temp files left behind: {leftovers:?}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn atomic_write_creates_missing_parent_dirs() {
+        let dir = scratch_dir("nested").join("a").join("b");
+        atomic_write(&dir, "x", "y").unwrap();
+        assert_eq!(std::fs::read_to_string(dir.join("x")).unwrap(), "y");
+        let _ = std::fs::remove_dir_all(dir.parent().unwrap().parent().unwrap());
+    }
 }
