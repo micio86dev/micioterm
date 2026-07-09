@@ -57,6 +57,8 @@ export class Pane {
   private readonly fit: FitAddon;
   private readonly options: PaneOptions;
   private readonly nameChip: HTMLDivElement;
+  /** Inner container xterm mounts into; its inset is the pane's inner padding. */
+  private readonly viewport: HTMLDivElement;
   private unlisten?: UnlistenFn;
   private exitUnlisten?: UnlistenFn;
   private resizeObserver?: ResizeObserver;
@@ -69,6 +71,13 @@ export class Pane {
 
     this.element = document.createElement("div");
     this.element.className = "pane";
+
+    // Inner container xterm renders into. Inset via CSS so FitAddon measures the
+    // padded area (padding on `.pane` itself is not reliably subtracted by fit,
+    // which clips edge text instead of shrinking the grid).
+    this.viewport = document.createElement("div");
+    this.viewport.className = "pane__terminal";
+    this.element.appendChild(this.viewport);
 
     // Small name chip (top-left overlay). Double-click to label the pane.
     this.nameChip = document.createElement("div");
@@ -104,7 +113,7 @@ export class Pane {
   /** Attach to the DOM, spawn the shell, and start streaming. */
   async mount(parent: HTMLElement): Promise<void> {
     parent.appendChild(this.element);
-    this.term.open(this.element);
+    this.term.open(this.viewport);
     // xterm's hidden input triggers macOS spellcheck noise; turn it off.
     this.element.querySelector("textarea")?.setAttribute("spellcheck", "false");
     this.loadRenderer();
