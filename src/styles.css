@@ -159,7 +159,8 @@ body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 4px;
+  /* A bit of breathing room around the terminal, capped well under 0.5cm. */
+  padding: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   opacity: 0.82;
@@ -177,6 +178,30 @@ body {
 .pane .xterm .xterm-viewport {
   height: 100%;
   background: transparent !important;
+}
+
+/* Pin the pane scrollbar to a solid black gutter regardless of pane count.
+   The viewport is transparent for the blur, so without this the scrollbar
+   track would show the blur through and look inconsistent (black only when a
+   pane happens to sit over dark content). */
+.pane .xterm-viewport::-webkit-scrollbar {
+  width: 11px;
+}
+
+.pane .xterm-viewport::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.pane .xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid #000000; /* inset the thumb inside the black gutter */
+  border-radius: 6px;
+  background-clip: padding-box;
+}
+
+.pane .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
 }
 
 /* Pane name chip (top-right overlay). Double-click to label the pane. */
